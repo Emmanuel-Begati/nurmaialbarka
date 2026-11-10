@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f6f7f9;
+  color: #1f2937;
+}
+
+@layer components {
+/* Tables */
+.table {
+  @apply w-full text-sm;
+}
+.table th {
+  @apply bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200;
+}
+.table td {
+  @apply px-3 py-2 border-b border-gray-100 align-middle;
+}
+.table tbody tr:hover {
+  @apply bg-gray-50/60;
+}
+
+/* Form controls */
+.input {
+  @apply block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+    focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30;
+}
+.label {
+  @apply mb-1 block text-sm font-medium text-gray-700;
+}
+
+/* Attendance radio chips */
+.chip input {
+  @apply sr-only;
+}
+.chip span {
+  @apply inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-md border border-gray-300 px-2 text-xs font-semibold text-gray-500 select-none;
+}
+.chip input:checked + span.present { @apply border-green-600 bg-green-600 text-white; }
+.chip input:checked + span.absent { @apply border-red-600 bg-red-600 text-white; }
+.chip input:checked + span.late { @apply border-amber-500 bg-amber-500 text-white; }
+.chip input:checked + span.excused { @apply border-sky-600 bg-sky-600 text-white; }
+.chip input:focus-visible + span { @apply ring-2 ring-brand-500/40; }
+}
+
+/* Printing */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
 }

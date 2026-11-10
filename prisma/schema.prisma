@@ -1,0 +1,328 @@
+// Nurul Qur'an School Admin — SQLite schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- School & calendar ----------
+
+model SchoolSettings {
+  id            Int     @id @default(1)
+  name          String
+  address       String  @default("")
+  phone         String  @default("")
+  motto         String  @default("")
+  principalName String  @default("")
+  currentTermId Int?
+  currentTerm   Term?   @relation(fields: [currentTermId], references: [id])
+}
+
+model AcademicSession {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique // e.g. "2026/2027"
+  terms      Term[]
+  classes    Class[]
+  enrollments Enrollment[]
+}
+
+model Term {
+  id              Int             @id @default(autoincrement())
+  sessionId       Int
+  session         AcademicSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  number          Int // 1, 2, 3
+  startDate       DateTime
+  endDate         DateTime
+  nextTermBegins  DateTime?
+  feeItems        FeeItem[]
+  payments        Payment[]
+  scores          Score[]
+  quranProgress   QuranProgress[]
+  termReports     TermReport[]
+  settings        SchoolSettings[]
+
+  @@unique([sessionId, number])
+}
+
+// ---------- People & auth ----------
+
+// roles: comma-separated list of: admin, bursar, teacher, parent, student
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique // email for staff/parents, admission no for students
+  passwordHash String
+  fullName     String
+  title        String    @default("") // Ustadh, Ustadha, Mallam, Mr, Mrs...
+  phone        String    @default("")
+  roles        String
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  photoAt      DateTime? // when the staff photo was last changed (null = no photo); image bytes live in Photo
+
+  sessions        Session[]
+  classesTaught   Class[]        @relation("ClassTeacher")
+  subjectsTaught  ClassSubject[]
+  student         Student?
+  guardian        Guardian?
+  attendanceMarked Attendance[]
+  paymentsRecorded Payment[]     @relation("PaymentRecordedBy")
+  paymentsVoided   Payment[]     @relation("PaymentVoidedBy")
+  auditLogs        AuditLog[]
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+// ---------- Classes & subjects ----------
+
+model Class {
+  id              Int             @id @default(autoincrement())
+  sessionId       Int
+  session         AcademicSession @relation(fields: [sessionId], references: [id])
+  classTeacherId  Int?
+  classTeacher    User?           @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  labelOverride   String? // optional; otherwise named after the class teacher
+  active          Boolean         @default(true)
+  subjects        ClassSubject[]
+  students        Student[]
+  enrollments     Enrollment[]
+  attendance      Attendance[]
+  feeItems        FeeItem[]
+}
+
+model Subject {
+  id       Int            @id @default(autoincrement())
+  name     String         @unique
+  code     String         @default("")
+  classes  ClassSubject[]
+}
+
+model ClassSubject {
+  id        Int     @id @default(autoincrement())
+  classId   Int
+  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId Int
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId Int?
+  teacher   User?   @relation(fields: [teacherId], references: [id])
+  scores    Score[]
+
+  @@unique([classId, subjectId])
+}
+
+// ---------- Students & guardians ----------
+
+model Student {
+  id          Int       @id @default(autoincrement())
+  admissionNo String    @unique
+  firstName   String
+  lastName    String
+  otherName   String    @default("")
+  gender      String // M / F
+  dateOfBirth DateTime?
+  address     String    @default("")
+  status      String    @default("active") // active, graduated, withdrawn
+  admittedOn  DateTime  @default(now())
+  classId     Int?
+  class       Class?    @relation(fields: [classId], references: [id])
+  userId      Int?      @unique
+  user        User?     @relation(fields: [userId], references: [id])
+  formToken   String?   @unique // one-time token from the admission form; stops double-submits creating duplicates
+  photoAt     DateTime? // when the passport photo was last changed (null = no photo); image bytes live in Photo
+
+  guardians     StudentGuardian[]
+  enrollments   Enrollment[]
+  attendance    Attendance[]
+  payments      Payment[]
+  scores        Score[]
+  quranProgress QuranProgress[]
+  termReports   TermReport[]
+}
+
+model Guardian {
+  id           Int               @id @default(autoincrement())
+  fullName     String
+  relationship String            @default("Parent")
+  phone        String            @default("")
+  email        String            @default("")
+  address      String            @default("")
+  userId       Int?              @unique
+  user         User?             @relation(fields: [userId], references: [id])
+  students     StudentGuardian[]
+}
+
+model StudentGuardian {
+  studentId  Int
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardianId Int
+  guardian   Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  isPrimary  Boolean  @default(false)
+
+  @@id([studentId, guardianId])
+}
+
+model Enrollment {
+  id        Int             @id @default(autoincrement())
+  studentId Int
+  student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId   Int
+  class     Class           @relation(fields: [classId], references: [id])
+  sessionId Int
+  session   AcademicSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([studentId, sessionId])
+}
+
+// ---------- Attendance ----------
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId   Int
+  class     Class    @relation(fields: [classId], references: [id])
+  date      String // YYYY-MM-DD
+  status    String // present, absent, late, excused
+  remark    String   @default("")
+  markedById Int
+  markedBy  User     @relation(fields: [markedById], references: [id])
+  markedAt  DateTime @default(now())
+
+  @@unique([studentId, date])
+  @@index([classId, date])
+}
+
+// ---------- Fees (admin & bursar only) ----------
+
+model FeeItem {
+  id      Int    @id @default(autoincrement())
+  termId  Int
+  term    Term   @relation(fields: [termId], references: [id], onDelete: Cascade)
+  classId Int? // null = applies to every class
+  class   Class? @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name    String // Tuition, Books, Uniform...
+  amount  Int // whole Naira
+}
+
+model Payment {
+  id           Int       @id @default(autoincrement())
+  receiptNo    String    @unique
+  studentId    Int
+  student      Student   @relation(fields: [studentId], references: [id])
+  termId       Int
+  term         Term      @relation(fields: [termId], references: [id])
+  amount       Int // whole Naira
+  method       String // cash, transfer, pos
+  reference    String    @default("")
+  note         String    @default("")
+  paidOn       DateTime
+  recordedById Int
+  recordedBy   User      @relation("PaymentRecordedBy", fields: [recordedById], references: [id])
+  createdAt    DateTime  @default(now())
+  voided       Boolean   @default(false)
+  voidReason   String    @default("")
+  voidedById   Int?
+  voidedBy     User?     @relation("PaymentVoidedBy", fields: [voidedById], references: [id])
+  voidedAt     DateTime?
+  formToken    String?   @unique // one-time token from the payment form; stops double-submits recording twice
+}
+
+// ---------- Results ----------
+
+model AssessmentComponent {
+  id       Int    @id @default(autoincrement())
+  key      String @unique // ca1, ca2, exam
+  label    String
+  maxScore Int
+  order    Int
+}
+
+model GradeBand {
+  id     Int    @id @default(autoincrement())
+  grade  String @unique
+  min    Int
+  max    Int
+  remark String
+}
+
+model Score {
+  id             Int          @id @default(autoincrement())
+  studentId      Int
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classSubjectId Int
+  classSubject   ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  termId         Int
+  term           Term         @relation(fields: [termId], references: [id])
+  components     String // JSON: {"ca1":15,"ca2":18,"exam":50}
+  total          Float
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([studentId, classSubjectId, termId])
+}
+
+model QuranProgress {
+  id               Int     @id @default(autoincrement())
+  studentId        Int
+  student          Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  termId           Int
+  term             Term    @relation(fields: [termId], references: [id])
+  memorisedFrom    String  @default("") // e.g. "Surah An-Naba"
+  memorisedTo      String  @default("") // e.g. "Surah An-Nas"
+  currentJuz       Int?
+  totalJuz         Float   @default(0)
+  hifzRating       Int? // 1-5
+  tajweedRating    Int? // 1-5
+  recitationRating Int? // 1-5
+  remark           String  @default("")
+
+  @@unique([studentId, termId])
+}
+
+model TermReport {
+  id                String  @id @default(cuid())
+  studentId         Int
+  student           Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  termId            Int
+  term              Term    @relation(fields: [termId], references: [id])
+  teacherRemark     String  @default("")
+  principalRemark   String  @default("")
+  conduct           Int? // 1-5
+  punctuality       Int? // 1-5
+  neatness          Int? // 1-5
+  published         Boolean @default(false)
+
+  @@unique([studentId, termId])
+}
+
+// ---------- Audit ----------
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String // e.g. payment.create, payment.void, score.update
+  entity    String
+  entityId  String
+  details   String   @default("")
+  createdAt DateTime @default(now())
+}
+
+// Passport photos for students and staff. Kept in their own table so normal
+// student/staff queries never load image bytes.
+model Photo {
+  id        Int      @id @default(autoincrement())
+  ownerType String // "student" or "staff"
+  ownerId   Int
+  mime      String
+  data      Bytes
+  updatedAt DateTime @updatedAt
+
+  @@unique([ownerType, ownerId])
+}
