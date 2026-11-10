@@ -17,7 +17,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
         where: {
           termId: term.id,
           ...(q
-            ? { OR: [{ receiptNo: { contains: q } }, { student: { firstName: { contains: q } } }, { student: { lastName: { contains: q } } }, { student: { admissionNo: { contains: q } } }] }
+            ? { OR: [{ receiptNo: { contains: q, mode: "insensitive" } }, { student: { firstName: { contains: q, mode: "insensitive" } } }, { student: { lastName: { contains: q, mode: "insensitive" } } }, { student: { admissionNo: { contains: q, mode: "insensitive" } } }] }
             : {}),
         },
         include: { student: true, recordedBy: true, voidedBy: true },

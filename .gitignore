@@ -45,3 +45,6 @@ prisma/dev.db*
 .env
 prisma/backups/
 .next-test/
+# old local SQLite files / scratch databases (data lives in Supabase now)
+*.db
+*.db-journal

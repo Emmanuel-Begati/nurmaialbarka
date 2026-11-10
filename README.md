@@ -2,18 +2,32 @@
 
 School management system for an Islamiyyah school: students, guardians, daily attendance, school fees (restricted), CA + exam results, Qur'an (hifz) progress, printable report cards and receipts, and a parent/student portal.
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Prisma · SQLite (`prisma/dev.db`)
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Prisma · PostgreSQL on Supabase
 
 ## Getting started
 
+Create a `.env` file (never commit it) with your Supabase connection strings:
+
 ```bash
-npm install
-npx prisma migrate dev     # creates prisma/dev.db and applies migrations
-npm run db:seed            # loads demo data (wipes existing data!)
+# Transaction pooler (port 6543), used by the running app
+SUPABASE_DATABASE_URL="postgresql://..."
+# Direct connection, used by migrations
+SUPABASE_DIRECT_URL="postgresql://..."
+```
+
+```bash
+npm install                # also generates the Prisma client
+npm run db:deploy          # creates/updates the tables in Supabase
 npm run dev                # http://localhost:3000
 ```
 
-`npm run db:reset` drops the database, re-applies migrations and re-seeds.
+`npm run db:seed` loads demo data and **wipes existing data**. Only use it on an empty or test database.
+
+### Moving data from the old SQLite version
+
+The app used to keep its data in `prisma/dev.db`. `npm run db:copy-from-sqlite` copies every record from that file into
+an empty Supabase database (it refuses if the target already has data). The old SQLite migrations are kept in
+`prisma/sqlite-archive/` for reference only.
 
 ### Demo logins (from `prisma/seed.ts`)
 
@@ -69,4 +83,4 @@ scripts/smoke-test.mjs      access-control checks: run with the app started, `no
 
 ## Moving to production later
 
-SQLite works on a single server. To move to Postgres (e.g. Supabase, Neon), change `provider` in `schema.prisma` and `DATABASE_URL`, then run `prisma migrate dev` to create fresh migrations. Set a strong admin password and serve over HTTPS; session cookies become `secure` in production automatically.
+Data lives in PostgreSQL on Supabase. Set a strong admin password and serve over HTTPS; session cookies become `secure` in production automatically.

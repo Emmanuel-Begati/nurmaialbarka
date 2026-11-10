@@ -29,7 +29,7 @@ export default async function StudentsPage({
           status === "all" ? {} : { status },
           sp.class ? { classId: Number(sp.class) } : {},
           q
-            ? { OR: [{ firstName: { contains: q } }, { lastName: { contains: q } }, { admissionNo: { contains: q } }] }
+            ? { OR: [{ firstName: { contains: q, mode: "insensitive" } }, { lastName: { contains: q, mode: "insensitive" } }, { admissionNo: { contains: q, mode: "insensitive" } }] }
             : {},
         ],
       },

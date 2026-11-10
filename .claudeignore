@@ -1,0 +1,3 @@
+# Secrets: Claude must never read these
+.env
+.env.*

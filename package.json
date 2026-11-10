@@ -9,7 +9,10 @@
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset",
+    "postinstall": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "db:copy-from-sqlite": "node --env-file=.env scripts/copy-sqlite-to-postgres.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
