@@ -2,11 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Lightweight gate: any non-public route needs a session cookie.
 // The real session + role checks happen server-side in each layout/page/action.
-const PUBLIC = ["/login"];
+// "/" is the public school website; staff photos are checked inside their route.
+const PUBLIC = ["/login", "/photo/staff/"];
+const PUBLIC_EXACT = ["/"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.some((p) => pathname.startsWith(p))) return NextResponse.next();
+  if (PUBLIC_EXACT.includes(pathname) || PUBLIC.some((p) => pathname.startsWith(p))) return NextResponse.next();
   if (!req.cookies.get("nq_session")) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";

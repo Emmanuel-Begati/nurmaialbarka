@@ -2,7 +2,9 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth/guards";
 import { className, termLabel, toISODate, TERM_NAMES } from "@/lib/format";
 import { Alert, Badge, Button, Card, Field, PageHeader } from "@/components/ui";
-import { createSession, promoteClass, saveGrading, saveSchool, setCurrentTerm, updateTerm } from "./actions";
+import { createSession, promoteClass, saveGrading, savePublicSite, saveSchool, setCurrentTerm, updateTerm } from "./actions";
+import { SITE_DEFAULTS } from "@/lib/public-site";
+import Link from "next/link";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   await requireRole("admin");
@@ -45,6 +47,60 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </Field>
             <div>
               <Button>Save</Button>
+            </div>
+          </form>
+        </Card>
+
+        <Card
+          title="Public website"
+          className="lg:col-span-2"
+          actions={
+            <Link href="/" target="_blank" className="text-sm font-medium text-brand-700 hover:underline">
+              View site ↗
+            </Link>
+          }
+        >
+          <form action={savePublicSite} className="grid gap-4 p-4 md:grid-cols-2">
+            <p className="text-sm text-gray-500 md:col-span-2">
+              This text appears on the school&apos;s public home page. Leave a box empty to use the suggested wording shown in grey. Leave a blank
+              line between paragraphs. School name, motto, address, phone and principal come from &ldquo;School details&rdquo;; term dates come
+              from &ldquo;Sessions &amp; term dates&rdquo;. Fee amounts are never shown publicly.
+            </p>
+            <div className="md:col-span-2">
+              <Field label="Short introduction (under the school name)">
+                <textarea name="tagline" rows={2} defaultValue={settings?.tagline} placeholder={SITE_DEFAULTS.tagline} className="input" />
+              </Field>
+            </div>
+            {(
+              [
+                ["aboutText", "About the school"],
+                ["principalMessage", "Principal's message"],
+                ["programmeText", "What we teach"],
+                ["admissionsText", "Admissions"],
+                ["feesText", "School fees (no amounts needed)"],
+              ] as const
+            ).map(([key, label]) => (
+              <Field key={key} label={label}>
+                <textarea name={key} rows={7} defaultValue={settings?.[key]} placeholder={SITE_DEFAULTS[key]} className="input" />
+              </Field>
+            ))}
+            <div className="space-y-4">
+              <Field label="School email (optional)">
+                <input name="email" type="email" defaultValue={settings?.email} className="input" />
+              </Field>
+              <Field label="Office hours">
+                <textarea name="officeHours" rows={3} defaultValue={settings?.officeHours} placeholder={SITE_DEFAULTS.officeHours} className="input" />
+              </Field>
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" name="showStaffPublicly" defaultChecked={settings?.showStaffPublicly ?? true} className="mt-0.5 h-4 w-4 accent-brand-600" />
+                <span>
+                  Show teachers&apos; names and photos on the website
+                  <span className="block text-xs text-gray-500">Turn off to keep the staff list private.</span>
+                </span>
+              </label>
+            </div>
+            <div className="md:col-span-2">
+              <Button>Save website</Button>
             </div>
           </form>
         </Card>

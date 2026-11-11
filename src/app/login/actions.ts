@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { createSession, destroySession, verifyPassword } from "@/lib/auth/session";
+import { parseRoles } from "@/lib/auth/roles";
+import { homePathFor } from "@/lib/home";
 
 export type LoginState = { error?: string };
 
@@ -19,7 +21,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     return { error: "Incorrect login details." };
   }
   await createSession(user.id);
-  redirect("/");
+  redirect(homePathFor(parseRoles(user.roles)));
 }
 
 export async function logout() {

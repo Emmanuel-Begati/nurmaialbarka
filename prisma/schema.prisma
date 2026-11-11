@@ -20,6 +20,16 @@ model SchoolSettings {
   phone         String  @default("")
   motto         String  @default("")
   principalName String  @default("")
+  // public website (landing page) text; empty = show default wording
+  tagline           String  @default("")
+  aboutText         String  @default("")
+  principalMessage  String  @default("")
+  programmeText     String  @default("")
+  admissionsText    String  @default("")
+  feesText          String  @default("")
+  email             String  @default("")
+  officeHours       String  @default("")
+  showStaffPublicly Boolean @default(true)
   currentTermId Int?
   currentTerm   Term?   @relation(fields: [currentTermId], references: [id])
 }

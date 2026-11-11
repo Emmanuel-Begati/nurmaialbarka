@@ -19,6 +19,21 @@ export async function saveSchool(fd: FormData) {
   back("School details saved.");
 }
 
+const SITE_FIELDS = ["tagline", "aboutText", "principalMessage", "programmeText", "admissionsText", "feesText", "email", "officeHours"] as const;
+
+/** Wording of the public website ("/"). Empty fields fall back to the default text. */
+export async function savePublicSite(fd: FormData) {
+  const me = await assertRole("admin");
+  // keep line breaks in the long texts, only trim the ends
+  const data = Object.fromEntries(SITE_FIELDS.map((k) => [k, String(fd.get(k) ?? "").replace(/\r\n/g, "\n").trim()])) as Record<(typeof SITE_FIELDS)[number], string>;
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) back("The website email address is not valid.", "error");
+  const showStaffPublicly = fd.get("showStaffPublicly") === "on";
+  await db.schoolSettings.update({ where: { id: 1 }, data: { ...data, showStaffPublicly } });
+  await audit(me.id, "settings.website", "SchoolSettings", 1);
+  revalidatePath("/");
+  back("Public website updated.");
+}
+
 export async function setCurrentTerm(fd: FormData) {
   const me = await assertRole("admin");
   const termId = Number(fd.get("termId"));
