@@ -7,13 +7,14 @@ import { canViewStudent } from "@/lib/scope";
 // Serves passport photos. Student photos follow the same rules as the student's record:
 // staff who can see the student, or the student's own parent/student login.
 // Staff photos are visible to anyone signed in (so parents can recognise teachers).
+// "site" images (e.g. the proprietor's photo) belong to the public website and are public.
 export async function GET(_req: Request, { params }: { params: Promise<{ owner: string; id: string }> }) {
   const user = await getCurrentUser();
   const { owner, id: rawId } = await params;
   const id = Number(rawId);
-  if (!Number.isInteger(id) || (owner !== "student" && owner !== "staff")) return new Response("Not found", { status: 404 });
+  if (!Number.isInteger(id) || (owner !== "student" && owner !== "staff" && owner !== "site")) return new Response("Not found", { status: 404 });
 
-  if (!user) {
+  if (!user && owner !== "site") {
     // visitors to the public website may see teachers' photos, if the school allows it
     if (owner !== "staff") return new Response("Unauthorized", { status: 401 });
     const [settings, staff] = await Promise.all([
@@ -37,7 +38,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ owner: 
       "Content-Type": photo.mime,
       "Content-Length": String(photo.data.length),
       // URLs carry ?v=<timestamp>, so a changed photo gets a new URL
-      "Cache-Control": user ? "private, max-age=31536000, immutable" : "public, max-age=3600",
+      "Cache-Control": owner === "site" ? "public, max-age=31536000, immutable" : user ? "private, max-age=31536000, immutable" : "public, max-age=3600",
       "X-Content-Type-Options": "nosniff",
     },
   });

@@ -1,7 +1,8 @@
 import "server-only";
 import { db } from "@/lib/db";
 
-export type PhotoOwner = "student" | "staff";
+/** "site" = images for the public website (id 1 = proprietor's photo). */
+export type PhotoOwner = "student" | "staff" | "site";
 
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 
@@ -45,6 +46,7 @@ export async function applyPhotoFromForm(owner: PhotoOwner, ownerId: number, fd:
 }
 
 async function setPhotoAt(owner: PhotoOwner, id: number, photoAt: Date | null) {
+  if (owner === "site") return; // website images use Photo.updatedAt for cache-busting
   if (owner === "student") await db.student.update({ where: { id }, data: { photoAt } });
   else await db.user.update({ where: { id }, data: { photoAt } });
 }

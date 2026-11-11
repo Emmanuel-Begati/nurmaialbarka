@@ -7,6 +7,7 @@ import { termLabel } from "@/lib/format";
 import { logout } from "@/app/login/actions";
 import { NavLinks, type NavItem } from "@/components/nav-links";
 import { MobileNav } from "@/components/mobile-nav";
+import { Logo } from "@/components/logo";
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -61,7 +62,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
       {/* desktop: fixed sidebar */}
       <aside className="no-print hidden bg-brand-900 lg:fixed lg:inset-y-0 lg:flex lg:w-60 lg:flex-col">
         <div className="flex items-center gap-3 px-4 py-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 font-bold text-white">ن</div>
+          <Logo className="h-11" />
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-white">{schoolName}</div>
             <div className="truncate text-xs text-brand-100/80">{termText}</div>

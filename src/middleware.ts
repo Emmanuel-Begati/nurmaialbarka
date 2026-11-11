@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Lightweight gate: any non-public route needs a session cookie.
 // The real session + role checks happen server-side in each layout/page/action.
 // "/" is the public school website; staff photos are checked inside their route.
-const PUBLIC = ["/login", "/photo/staff/"];
+const PUBLIC = ["/login", "/photo/staff/", "/photo/site/", "/logo.png", "/icon.png", "/apple-icon.png"];
 const PUBLIC_EXACT = ["/"];
 
 export function middleware(req: NextRequest) {

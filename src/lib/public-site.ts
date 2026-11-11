@@ -28,6 +28,9 @@ For details, please contact the school office.`,
   officeHours: "Please call the school office to arrange a visit.",
 } as const;
 
+/** Photo row (ownerType "site") holding the proprietor's picture. */
+export const PROPRIETOR_PHOTO_ID = 1;
+
 export type SiteTextKey = keyof typeof SITE_DEFAULTS;
 
 /** The admin's text if set, otherwise the starter wording. */

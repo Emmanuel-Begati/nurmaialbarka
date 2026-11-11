@@ -4,6 +4,7 @@ import { getSettings } from "@/lib/current";
 import Link from "next/link";
 import { homePathFor } from "@/lib/home";
 import LoginForm from "./login-form";
+import { Logo } from "@/components/logo";
 
 export default async function LoginPage() {
   const user = await getCurrentUser();
@@ -13,9 +14,7 @@ export default async function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-800 to-brand-900 px-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-xl font-bold text-white">
-            ن
-          </div>
+          <Logo className="mx-auto mb-3 h-24" priority />
           <h1 className="text-lg font-semibold text-gray-900">{settings?.name ?? "School Admin"}</h1>
           <p className="text-sm text-gray-500">Sign in to continue</p>
         </div>

@@ -2,6 +2,7 @@ import { className, formatDate, RATING_LABELS, studentName, termLabel } from "@/
 import { ordinal } from "@/lib/grading";
 import { photoUrl } from "@/lib/photo-url";
 import type { reportCard } from "@/lib/report";
+import { Logo } from "@/components/logo";
 
 type Data = NonNullable<Awaited<ReturnType<typeof reportCard>>>;
 
@@ -13,6 +14,7 @@ export function ReportCard({ d }: { d: Data }) {
     <div className="print-sheet mx-3 my-4 max-w-4xl break-after-page rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-sm sm:mx-auto sm:my-6 sm:p-8">
       {/* Header */}
       <div className="border-b-2 border-brand-700 pb-3 text-center">
+        <Logo className="mx-auto mb-2 h-16 sm:h-20" />
         <h1 className="text-lg font-bold text-brand-800 uppercase sm:text-2xl">{settings?.name}</h1>
         <p className="text-xs text-gray-600">{settings?.address}</p>
         {settings?.motto && <p className="text-xs text-gray-500 italic">&ldquo;{settings.motto}&rdquo;</p>}

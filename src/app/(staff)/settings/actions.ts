@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { assertRole, audit } from "@/lib/auth/guards";
+import { applyPhotoFromForm, PhotoError } from "@/lib/photos";
+import { PROPRIETOR_PHOTO_ID } from "@/lib/public-site";
 
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const back = (msg: string, kind: "saved" | "error" = "saved") => redirect(`/settings?${kind}=${encodeURIComponent(msg)}`);
@@ -29,6 +31,12 @@ export async function savePublicSite(fd: FormData) {
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) back("The website email address is not valid.", "error");
   const showStaffPublicly = fd.get("showStaffPublicly") === "on";
   await db.schoolSettings.update({ where: { id: 1 }, data: { ...data, showStaffPublicly } });
+  try {
+    await applyPhotoFromForm("site", PROPRIETOR_PHOTO_ID, fd);
+  } catch (e) {
+    if (e instanceof PhotoError) back(`Text saved, but the proprietor's photo was not: ${e.message}`, "error");
+    throw e;
+  }
   await audit(me.id, "settings.website", "SchoolSettings", 1);
   revalidatePath("/");
   back("Public website updated.");

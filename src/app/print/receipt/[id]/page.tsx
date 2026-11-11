@@ -6,6 +6,7 @@ import { portalStudentIds } from "@/lib/auth/guards";
 import { feeBalances } from "@/lib/fees";
 import { className, formatDate, formatNaira, studentName, termLabel } from "@/lib/format";
 import { PrintBar } from "@/components/print-button";
+import { Logo } from "@/components/logo";
 
 export default async function ReceiptPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ new?: string }> }) {
   const user = await requireUser();
@@ -30,6 +31,7 @@ export default async function ReceiptPage({ params, searchParams }: { params: Pr
       {isNew && <div className="no-print mx-auto mt-4 max-w-xl rounded-md bg-green-50 px-4 py-2 text-sm text-green-800">Payment recorded.</div>}
       <div className="print-sheet mx-3 my-4 max-w-xl rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:mx-auto sm:my-6 sm:p-8">
         <div className="border-b-2 border-brand-700 pb-4 text-center">
+          <Logo className="mx-auto mb-2 h-16" />
           <h1 className="text-xl font-bold text-brand-800 uppercase">{settings?.name}</h1>
           <p className="text-xs text-gray-600">{settings?.address}</p>
           <p className="text-xs text-gray-600">{settings?.phone}</p>

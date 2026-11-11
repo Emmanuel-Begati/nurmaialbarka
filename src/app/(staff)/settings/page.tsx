@@ -3,7 +3,9 @@ import { requireRole } from "@/lib/auth/guards";
 import { className, termLabel, toISODate, TERM_NAMES } from "@/lib/format";
 import { Alert, Badge, Button, Card, Field, PageHeader } from "@/components/ui";
 import { createSession, promoteClass, saveGrading, savePublicSite, saveSchool, setCurrentTerm, updateTerm } from "./actions";
-import { SITE_DEFAULTS } from "@/lib/public-site";
+import { PROPRIETOR_PHOTO_ID, SITE_DEFAULTS } from "@/lib/public-site";
+import { PhotoInput } from "@/components/photo-input";
+import { photoUrl } from "@/lib/photo-url";
 import Link from "next/link";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
@@ -17,6 +19,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     db.class.findMany({ include: { classTeacher: true, session: true }, where: { active: true } }),
     db.auditLog.findMany({ include: { user: true }, orderBy: { createdAt: "desc" }, take: 40 }),
   ]);
+  const proprietorPhoto = await db.photo.findUnique({
+    where: { ownerType_ownerId: { ownerType: "site", ownerId: PROPRIETOR_PHOTO_ID } },
+    select: { updatedAt: true },
+  });
   const allTerms = sessions.flatMap((s) => s.terms.map((t) => ({ ...t, session: s })));
 
   return (
@@ -38,7 +44,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <Field label="Phone">
                 <input name="phone" defaultValue={settings?.phone} className="input" />
               </Field>
-              <Field label="Principal / Proprietor">
+              <Field label="Proprietor">
                 <input name="principalName" defaultValue={settings?.principalName} className="input" />
               </Field>
             </div>
@@ -63,7 +69,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <form action={savePublicSite} className="grid gap-4 p-4 md:grid-cols-2">
             <p className="text-sm text-gray-500 md:col-span-2">
               This text appears on the school&apos;s public home page. Leave a box empty to use the suggested wording shown in grey. Leave a blank
-              line between paragraphs. School name, motto, address, phone and principal come from &ldquo;School details&rdquo;; term dates come
+              line between paragraphs. School name, motto, address, phone and proprietor come from &ldquo;School details&rdquo;; term dates come
               from &ldquo;Sessions &amp; term dates&rdquo;. Fee amounts are never shown publicly.
             </p>
             <div className="md:col-span-2">
@@ -74,7 +80,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             {(
               [
                 ["aboutText", "About the school"],
-                ["principalMessage", "Principal's message"],
+                ["principalMessage", "Proprietor's message"],
                 ["programmeText", "What we teach"],
                 ["admissionsText", "Admissions"],
                 ["feesText", "School fees (no amounts needed)"],
@@ -85,6 +91,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               </Field>
             ))}
             <div className="space-y-4">
+              <div>
+                <span className="label mb-2 block">Proprietor&apos;s photo (shown beside the message)</span>
+                <PhotoInput name={settings?.principalName || "Proprietor"} currentUrl={photoUrl("site", PROPRIETOR_PHOTO_ID, proprietorPhoto?.updatedAt)} />
+              </div>
               <Field label="School email (optional)">
                 <input name="email" type="email" defaultValue={settings?.email} className="input" />
               </Field>

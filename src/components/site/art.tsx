@@ -55,7 +55,7 @@ export function Rosette({ className = "" }: { className?: string }) {
 }
 
 /** Mosque skyline silhouette for the bottom of the hero. */
-export function MosqueSkyline({ className = "", archColor = "#064e3b" }: { className?: string; archColor?: string }) {
+export function MosqueSkyline({ className = "", archColor = "#4f0d10" }: { className?: string; archColor?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 1440 240" preserveAspectRatio="xMidYMax slice" className={className}>
       <g fill="currentColor">
